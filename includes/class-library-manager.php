@@ -117,6 +117,8 @@ class LIMA_Library_Manager {
      * @since 1.0.0
      */
     public function activation_hook() {
+        Library_Manager_Database::create_table();
+        flush_rewrite_rules();
     }
 
     /**
@@ -136,6 +138,7 @@ class LIMA_Library_Manager {
      * @since 1.0.0
      */
     public function deactivation_hook() {
+        flush_rewrite_rules();
     }
 
     /**
