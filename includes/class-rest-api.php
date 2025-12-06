@@ -115,7 +115,7 @@ class Library_Manager_REST_API {
                 'required' => false,
                 'type' => 'integer',
                 'validate_callback' => function($param) {
-                    return empty($param) || (is_numeric($param) && $param > 0 && $param <= date('Y') + 1);
+                    return empty($param) || (is_numeric($param) && $param > 0 && $param <= gmdate('Y') + 1);
                 }
             ),
             'status' => array(
