@@ -38,8 +38,6 @@ class Library_Manager_Database {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
-
-        update_option('library_manager_db_version', LIMA_VERSION);
     }
 
     /**

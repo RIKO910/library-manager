@@ -71,8 +71,6 @@ class LIMA_Library_Manager {
         $this->file = $file;
         $this->define_constant();
         $this->includes();
-        $this->activation();
-        $this->deactivation();
         $this->init_hooks();
     }
 
@@ -98,47 +96,6 @@ class LIMA_Library_Manager {
         require_once LIMA_PLUGIN_DIR . 'includes/class-database.php';
         require_once LIMA_PLUGIN_DIR . 'includes/class-rest-api.php';
         require_once LIMA_PLUGIN_DIR . 'includes/class-admin.php';
-    }
-
-    /**
-     * Activation.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function activation() {
-        register_activation_hook( $this->file, array( $this, 'activation_hook' ) );
-    }
-
-    /**
-     * Activation hook.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function activation_hook() {
-        Library_Manager_Database::create_table();
-        flush_rewrite_rules();
-    }
-
-    /**
-     * Deactivation.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function deactivation() {
-        register_deactivation_hook( $this->file, array( $this, 'deactivation_hook' ) );
-    }
-
-    /**
-     * Deactivation hook
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function deactivation_hook() {
-        flush_rewrite_rules();
     }
 
     /**
