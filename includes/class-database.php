@@ -47,7 +47,6 @@ class Library_Manager_Database {
         global $wpdb;
         $table_name = self::get_table_name();
 
-        // Default parameters
         $defaults = array(
             'search' => '',
             'status' => '',
@@ -63,7 +62,6 @@ class Library_Manager_Database {
 
         // Build WHERE clause
         $where_conditions = array('1=1');
-        $where_values = array();
 
         // General search across multiple fields
         if (!empty($params['search'])) {
@@ -76,25 +74,21 @@ class Library_Manager_Database {
             );
         }
 
-        // Author filter
         if (!empty($params['author'])) {
             $author_term = '%' . $wpdb->esc_like($params['author']) . '%';
             $where_conditions[] = $wpdb->prepare("author LIKE %s", $author_term);
         }
 
-        // Status filter
         if (!empty($params['status'])) {
             $where_conditions[] = $wpdb->prepare("status = %s", $params['status']);
         }
 
-        // Year filter
         if (!empty($params['year'])) {
             $where_conditions[] = $wpdb->prepare("publication_year = %d", intval($params['year']));
         }
 
         $where_clause = implode(' AND ', $where_conditions);
 
-        // Count total books
         $count_query = "SELECT COUNT(*) FROM {$table_name} WHERE {$where_clause}";
         $total_books = $wpdb->get_var($count_query);
 

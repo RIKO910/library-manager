@@ -36,6 +36,20 @@ class Library_Manager_Admin {
     }
 
     /**
+     * Render admin page
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function render_admin_page() {
+        ?>
+        <div class="library-manager">
+            <div id="library-manager-root"></div>
+        </div>
+        <?php
+    }
+
+    /**
      * Enqueue scripts and styles
      *
      * @return void
@@ -67,19 +81,4 @@ class Library_Manager_Admin {
             LIMA_VERSION
         );
     }
-
-    /**
-     * Render admin page
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function render_admin_page() {
-        ?>
-        <div class="library-manager">
-            <div id="library-manager-root"></div>
-        </div>
-        <?php
-    }
-
 }

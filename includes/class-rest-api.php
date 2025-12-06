@@ -15,6 +15,9 @@ class Library_Manager_REST_API {
 
     /**
      * Register REST API routes
+     *
+     * @since 1.0.0
+     * @return void
      */
     public function register_routes() {
         // GET /books

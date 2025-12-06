@@ -50,8 +50,9 @@ const SearchBar = ({ onSearch, onClear, initialValues = {} }) => {
                                 name="search"
                                 value={searchParams.search}
                                 onChange={handleChange}
-                                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-3 py-5 border border-gray-300 rounded-md"
+                                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
                                 placeholder="Search by title, author, or description..."
+                                style={{ padding: "5px" }}
                             />
                         </div>
                     </div>
