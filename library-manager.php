@@ -25,21 +25,9 @@ require_once __DIR__ . '/includes/class-library-manager.php';
 function lima_activation_hook() {
     require_once __DIR__ . '/includes/class-database.php';
     Library_Manager_Database::create_table();
-    flush_rewrite_rules();
 }
 
-/**
- * Deactivation hook callback.
- *
- * @since 1.0.0
- */
-function lima_deactivation_hook() {
-    flush_rewrite_rules();
-}
-
-// Register activation/deactivation hooks.
 register_activation_hook( __FILE__, 'lima_activation_hook' );
-register_deactivation_hook( __FILE__, 'lima_deactivation_hook' );
 
 /**
  * Initializing Plugin.

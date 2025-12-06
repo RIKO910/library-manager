@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BookList from './components/BookList';
 import AddBookForm from './components/AddBookForm';
 import EditBookForm from './components/EditBookForm';
+import SearchBar from './components/SearchBar';
 import './tailwind.css';
 
 const App = () => {
@@ -11,14 +12,35 @@ const App = () => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [searchParams, setSearchParams] = useState({
+        search: '',
+        status: '',
+        author: '',
+        year: ''
+    });
+    const [pagination, setPagination] = useState({
+        page: 1,
+        per_page: 10,
+        total: 0,
+        pages: 0
+    });
 
     const API_URL = window.libraryManager.restUrl;
     const NONCE = window.libraryManager.nonce;
 
-    const fetchBooks = async () => {
+    const fetchBooks = async (params = {}) => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_URL}/books`, {
+
+            // Build query string from search parameters
+            const queryParams = new URLSearchParams({
+                ...searchParams,
+                ...params,
+                page: pagination.page,
+                per_page: pagination.per_page
+            }).toString();
+
+            const response = await fetch(`${API_URL}/books?${queryParams}`, {
                 headers: {
                     'X-WP-Nonce': NONCE
                 }
@@ -30,6 +52,12 @@ const App = () => {
 
             const data = await response.json();
             setBooks(data.books || []);
+            setPagination({
+                page: data.page || 1,
+                per_page: data.per_page || 10,
+                total: data.total || 0,
+                pages: data.pages || 0
+            });
             setError(null);
         } catch (err) {
             setError(err.message);
@@ -41,7 +69,26 @@ const App = () => {
 
     useEffect(() => {
         fetchBooks();
-    }, []);
+    }, [searchParams, pagination.page]);
+
+    const handleSearch = (newSearchParams) => {
+        setSearchParams(newSearchParams);
+        setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page on new search
+    };
+
+    const handleClearSearch = () => {
+        setSearchParams({
+            search: '',
+            status: '',
+            author: '',
+            year: ''
+        });
+        setPagination(prev => ({ ...prev, page: 1 }));
+    };
+
+    const handlePageChange = (newPage) => {
+        setPagination(prev => ({ ...prev, page: newPage }));
+    };
 
     const handleAddBook = async (bookData) => {
         try {
@@ -146,7 +193,10 @@ const App = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900">Library Book Management</h1>
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Book Management</h1>
+                            <p className="text-gray-600 mt-1">Manage your library collection</p>
+                        </div>
                         {!showAddForm && !editingBook && (
                             <button
                                 onClick={handleShowAddForm}
@@ -159,6 +209,13 @@ const App = () => {
                             </button>
                         )}
                     </div>
+
+                    {/* Search Bar */}
+                    <SearchBar
+                        onSearch={handleSearch}
+                        onClear={handleClearSearch}
+                        initialValues={searchParams}
+                    />
 
                     {/* Messages */}
                     {error && (
@@ -192,6 +249,42 @@ const App = () => {
                     )}
                 </div>
 
+                {/* Results Summary */}
+                {!loading && books.length > 0 && (
+                    <div className="mb-4 flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
+                            Showing {(pagination.page - 1) * pagination.per_page + 1} to{' '}
+                            {Math.min(pagination.page * pagination.per_page, pagination.total)} of{' '}
+                            {pagination.total} books
+                        </p>
+                        {pagination.total > pagination.per_page && (
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={() => handlePageChange(pagination.page - 1)}
+                                    disabled={pagination.page === 1}
+                                    className={`px-3 py-1 rounded-md text-sm ${pagination.page === 1
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}`}
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    Page {pagination.page} of {pagination.pages}
+                                </span>
+                                <button
+                                    onClick={() => handlePageChange(pagination.page + 1)}
+                                    disabled={pagination.page === pagination.pages}
+                                    className={`px-3 py-1 rounded-md text-sm ${pagination.page === pagination.pages
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}`}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Add Book Form */}
                 {showAddForm && (
                     <div className="wp-card mb-8">
@@ -221,7 +314,7 @@ const App = () => {
                 {/* Loading State */}
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-wp-blue"></div>
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                         <p className="mt-4 text-gray-600">Loading books...</p>
                     </div>
                 ) : (

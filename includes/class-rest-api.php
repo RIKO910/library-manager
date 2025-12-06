@@ -132,6 +132,7 @@ class Library_Manager_REST_API {
      */
     public function get_books($request) {
         $params = array(
+            'search' => $request->get_param('search'),
             'status' => $request->get_param('status'),
             'author' => $request->get_param('author'),
             'year' => $request->get_param('year'),

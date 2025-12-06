@@ -43,66 +43,87 @@ class Library_Manager_Database {
     /**
      * Get all books with optional filters
      */
-    public static function get_books($args = array()) {
+    public static function get_books($params = array()) {
         global $wpdb;
-
         $table_name = self::get_table_name();
 
-        // Default arguments
+        // Default parameters
         $defaults = array(
+            'search' => '',
             'status' => '',
             'author' => '',
             'year' => '',
             'page' => 1,
-            'per_page' => 10
+            'per_page' => 10,
+            'orderby' => 'created_at',
+            'order' => 'DESC'
         );
 
-        $args = wp_parse_args($args, $defaults);
+        $params = wp_parse_args($params, $defaults);
 
-        // Build query
-        $where = array('1=1');
-        $prepare_args = array();
+        // Build WHERE clause
+        $where_conditions = array('1=1');
+        $where_values = array();
 
-        if (!empty($args['status'])) {
-            $where[] = 'status = %s';
-            $prepare_args[] = $args['status'];
+        // General search across multiple fields
+        if (!empty($params['search'])) {
+            $search_term = '%' . $wpdb->esc_like($params['search']) . '%';
+            $where_conditions[] = $wpdb->prepare(
+                "(title LIKE %s OR author LIKE %s OR description LIKE %s)",
+                $search_term,
+                $search_term,
+                $search_term
+            );
         }
 
-        if (!empty($args['author'])) {
-            $where[] = 'author LIKE %s';
-            $prepare_args[] = '%' . $wpdb->esc_like($args['author']) . '%';
+        // Author filter
+        if (!empty($params['author'])) {
+            $author_term = '%' . $wpdb->esc_like($params['author']) . '%';
+            $where_conditions[] = $wpdb->prepare("author LIKE %s", $author_term);
         }
 
-        if (!empty($args['year'])) {
-            $where[] = 'publication_year = %d';
-            $prepare_args[] = intval($args['year']);
+        // Status filter
+        if (!empty($params['status'])) {
+            $where_conditions[] = $wpdb->prepare("status = %s", $params['status']);
         }
 
-        $where_clause = implode(' AND ', $where);
-
-        // Pagination
-        $limit = intval($args['per_page']);
-        $offset = (intval($args['page']) - 1) * $limit;
-
-        // Get total count
-        $count_query = "SELECT COUNT(*) FROM $table_name WHERE $where_clause";
-        if (!empty($prepare_args)) {
-            $count_query = $wpdb->prepare($count_query, $prepare_args);
+        // Year filter
+        if (!empty($params['year'])) {
+            $where_conditions[] = $wpdb->prepare("publication_year = %d", intval($params['year']));
         }
-        $total = $wpdb->get_var($count_query);
 
-        // Get books
-        $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY created_at DESC LIMIT %d OFFSET %d";
-        $prepare_args[] = $limit;
-        $prepare_args[] = $offset;
+        $where_clause = implode(' AND ', $where_conditions);
 
-        $books = $wpdb->get_results($wpdb->prepare($query, $prepare_args), ARRAY_A);
+        // Count total books
+        $count_query = "SELECT COUNT(*) FROM {$table_name} WHERE {$where_clause}";
+        $total_books = $wpdb->get_var($count_query);
+
+        // Calculate pagination
+        $offset = (intval($params['page']) - 1) * intval($params['per_page']);
+
+        // Validate and sanitize ORDER BY
+        $allowed_orderby = array('id', 'title', 'author', 'publication_year', 'status', 'created_at');
+        $orderby = in_array($params['orderby'], $allowed_orderby) ? $params['orderby'] : 'created_at';
+        $order = strtoupper($params['order']) === 'ASC' ? 'ASC' : 'DESC';
+
+        // Main query with pagination
+        $query = $wpdb->prepare(
+            "SELECT * FROM {$table_name} 
+         WHERE {$where_clause} 
+         ORDER BY {$orderby} {$order} 
+         LIMIT %d OFFSET %d",
+            intval($params['per_page']),
+            $offset
+        );
+
+        $books = $wpdb->get_results($query, ARRAY_A);
 
         return array(
-            'books' => $books,
-            'total' => intval($total),
-            'page' => intval($args['page']),
-            'per_page' => $limit
+            'books' => $books ? $books : array(),
+            'total' => intval($total_books),
+            'page' => intval($params['page']),
+            'per_page' => intval($params['per_page']),
+            'pages' => ceil($total_books / $params['per_page'])
         );
     }
 
