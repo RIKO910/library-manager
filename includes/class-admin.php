@@ -60,15 +60,12 @@ class Library_Manager_Admin {
             'nonce' => wp_create_nonce('wp_rest')
         ));
 
-        wp_add_inline_style('wp-admin', '
-            #library-manager-root {
-                background: #fff;
-                padding: 20px;
-                margin: 20px 0;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-        ');
+        wp_enqueue_style(
+            'library-manager-tailwind',
+            LIMA_PLUGIN_URL . 'admin/dist/tailwind.css',
+            array(),
+            LIMA_VERSION
+        );
     }
 
     /**
@@ -79,8 +76,7 @@ class Library_Manager_Admin {
      */
     public function render_admin_page() {
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('Library Manager Dashboard', 'library-manager'); ?></h1>
+        <div class="library-manager">
             <div id="library-manager-root"></div>
         </div>
         <?php
